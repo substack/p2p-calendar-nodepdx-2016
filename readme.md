@@ -81,6 +81,8 @@ kappa architecture
 * parse-messy-schedule
 * hyperlog-calendar-index
 * calendar-db
+* calendar-month-string
+* text-layers
 
 ---
 # hyperlog
@@ -206,6 +208,12 @@ DEMO
 * encapsulate parse-messy-{time,schedule} into calendar-db
 * make hyperlog-calendar-index to write to calendar-db
 * which uses hyperlog-index to read from hyperkv
+
+---
+# where I'm going with this...
+
+* and calendar-month-string renders a text calendar
+* then text-layers positions blocks of text
 
 ---
 # norcal
