@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "calendar-db": "^1.2.1",
+    "hyperkv": "^1.7.0",
+    "hyperlog": "^4.10.0",
+    "hyperlog-calendar-index": "^2.1.0",
+    "hyperlog-index": "^5.0.3",
+    "level": "^1.4.0",
+    "parse-messy-schedule": "^2.0.3",
+    "parse-messy-time": "^2.0.2"
+  }
+}

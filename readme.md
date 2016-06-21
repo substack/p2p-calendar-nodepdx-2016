@@ -1,48 +1,239 @@
 # p2p calendar
 
----
+James Halliday
 
+https://substack.neocities.com
+
+---
+# google calendar
+
+at most a few kilobytes of text data
+
+and yet:
+
+```
+$ du -sh Google\ Calendar\ -\ Month\ of\ Jun\ 2016*
+2.9M  Google Calendar - Month of Jun 2016_files
+556K  Google Calendar - Month of Jun 2016.html
+```
+
+---
+# privacy
+
+now an advertising company (google)
+has your calendar
 
 ---
 # services that nobody can own
 
+instead of using somebody else's computers (the cloud),
+
+we can use our own computers
+
 ---
-# 
+# p2p
 
-computer programs that talk to each other
+make the web great again
 
-everything is a client
+---
+# everything is a client
+
+Computer programs talk to each other
+directly without mediation.
+
+(counterantidisintermediationism)
+
+---
+# tips for building a distributed system
+
+Avoid applying centralized thinking to distributed systems:
+
+* global concensus
+* "conflicts" - why can't we all get along?
+
+---
+# tips for building a distributed system
+
+Instead of solving a problem,
+try not having that problem in the first place.
+
+---
+# anarchitecture
+
+kappa architecture
+
+* an append-only log serves as a source of truth
+* materialized views create derived information about the log
+
+---
+# some things I've built with this architecture:
+
+* p2p offline map database (osm-p2p)
+
+---
+# some libraries for a p2p calendar
+
+* hyperlog
+* hyperlog-index
+* hyperkv
+* hyperlog-calendar-index
+* parse-messy-time
+* parse-messy-schedule
+* hyperlog-calendar-index
+* calendar-db
 
 ---
 # hyperlog
 
----
-# kappa architecture
+append-only log
+
+where each document can point at the hash of prior documents
+
+like git! (a merkle DAG)
 
 ---
-# 
+# hyperlog
 
-some things I've built with this architecture:
+appending a document:
 
-* p2p offline map database
+``` js
+var hyperlog = require('hyperlog')
+var level = require('level')
+var db = level('./data.db')
+var log = hyperlog(db, { valueEncoding: 'json' })
+
+var value = JSON.parse(process.argv[2])
+var ancestorKeys = process.argv.slice(3)
+
+log.add(ancestorKeys, value, function (err, node) {
+ if (err) console.error(err)
+ else console.log(node)
+})
+```
 
 ---
-# a calendar
+# hyperlog
+
+listing all documents:
+
+``` js
+var hyperlog = require('hyperlog')
+var level = require('level')
+var db = level('./data.db')
+var log = hyperlog(db, { valueEncoding: 'json' })
+
+log.createReadStream().on('data', console.log)
+```
+
+---
+# hyperlog-index
+
+tail the log to generate materialized views
+
+``` js
+var hindex = require('hyperlog-index')
+
+hindex({
+ log: log,
+ db: db,
+ map: function (row, next) {
+  // `row` is a document from the log
+  // create some derived values here
+  // then call next()
+ })
+})
+```
+
+---
+# hyperkv
+
+a key/value store derived from a hyperlog
+
+multi-value register conflict strategy
+
+---
+# hyperkv
+
+``` js
+var hyperkv = require('hyperkv')
+var kv = hyperkv({
+ db: level('./index.db'),
+ log: log
+})
+
+kv.put('hello', { msg: 'world' }, function (err) {
+ if (err) return console.error(err)
+ kv.get('hello', function (err, values) {
+  if (err) return console.error(err)
+  console.log(values) // note, "values" not "value"
+ })
+})
+```
+
+---
+# multi-value register
+
+for any given key, there may be multiple values
+
+plurality!
+
+Now you don't need to solve consensus problems.
+
+Make the UI deal with it.
+
+---
+# where I'm going with this...
+
+* write calendar events into hyperlog
+* with hyperkv so that events are updateable with an event ID
+* which uses hyperlog-index
+
+---
+# some time parsing
 
 * parse-messy-time
 * parse-messy-schedule
-* 
+
+DEMO
+
+---
+# where I'm going with this...
+
+* write calendar events into hyperlog
+* with hyperkv so that events are updateable with an event ID
+* which uses hyperlog-index
+
+* encapsulate parse-messy-{time,schedule} into calendar-db
+* make hyperlog-calendar-index to write to calendar-db
+* which uses hyperlog-index to read from hyperkv
+
+---
+# norcal
+
+does all of those things
+
+in 63 sloc! (because modularity)
+
+```
+$ grep \\S index.js | wc -l
+63
+```
+
+---
+# norcal
+
+DEMO
+
+also let's add replication to the source code!
 
 ---
 # sharing a calendar
 
 Here are some options:
 
-* share your whole calendar - bad for privacy
-* 
-
----
-# capability system
+* share your whole calendar publically
+* encrypt your calendar and share the key
+* encrypt individual properties and share those keys
 
 ---
 # capability system: unix file system
@@ -297,3 +488,21 @@ dayKeys.forEach(function (evProp) {
   })
 })
 ```
+
+---
+# nested derived hmac encryption module
+
+That was a lot of code.
+
+Module coming soon.
+
+---
+# and now
+
+let's imagine using that capability system in our p2p calendar
+
+I bet it would be nice.
+
+---
+
+EOF
